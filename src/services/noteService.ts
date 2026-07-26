@@ -20,9 +20,6 @@ interface FetchNotesParams {
 
 interface FetchNotesResponse {
     notes: Note[];
-    page: number;
-    perPage: number;
-    totalItems: number;
     totalPages: number;
 }
 

@@ -1,6 +1,8 @@
 import css from "./NoteForm.module.css"
 import * as Yup from 'yup'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {type CreateNoteParams, createNote } from "../../services/noteService"
 
 const NoteSchema = Yup.object().shape({
     title: Yup.string()
@@ -26,17 +28,28 @@ const initialValue = {
 
 interface NoteFormProps {
     onClose: () => void;
-    onSubmit: (values: typeof initialValue) => void;
 }
 
 
-export default function NoteForm({ onClose, onSubmit }: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
+    const queryClient = useQueryClient();
+
+    const createNoteMutation = useMutation({
+        mutationFn: (newNote: CreateNoteParams) => createNote(newNote),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notes'] });
+            onClose(); 
+        },
+    });
+
+
     return (
         <Formik
             initialValues={initialValue}
             validationSchema={NoteSchema}
             onSubmit={(values, actions) => {
-                onSubmit(values); 
+    
+                createNoteMutation.mutate(values as CreateNoteParams);
                 actions.resetForm();
             }}
         >

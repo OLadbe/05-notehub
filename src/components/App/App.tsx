@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query' 
+import { useQuery,  keepPreviousData } from '@tanstack/react-query' 
 import { useDebouncedCallback } from 'use-debounce'
 
-import { fetchNotes, createNote, type CreateNoteParams, deleteNote } from '../../services/noteService' 
+import { fetchNotes} from '../../services/noteService' 
 import NoteList from '../NoteList/NoteList'
 import Pagination from '../Pagination/Pagination'
 import SearchBox from '../SearchBox/SearchBox'
@@ -18,7 +18,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
 
-  const queryClient = useQueryClient();
+
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['notes', page, search],
@@ -31,20 +31,6 @@ function App() {
     placeholderData: keepPreviousData,
   });
 
-  const createNoteMutation = useMutation({
-    mutationFn: (newNote: CreateNoteParams ) => createNote(newNote), 
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] }); 
-      setIsModalOpen(false); 
-    },
-  });
-
-  const deleteNoteMutation = useMutation({
-    mutationFn: (noteId: string) => deleteNote(noteId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-  });
 
   const notesArray = data?.notes || [];
   const totalPages = data?.totalPages || 1;
@@ -68,15 +54,13 @@ function App() {
       {isError && <p>Oops! Something went wrong.</p>}
 
       {!isLoading && !isError && notesArray.length > 0 && (
-        <NoteList notes={notesArray}
-          onDelete={(id) => deleteNoteMutation.mutate(id)} />
+        <NoteList notes={notesArray} />
       )}
 
       {isModalOpen && (
           <Modal onClose={() => setIsModalOpen(false)}>
               <NoteForm 
                   onClose={() => setIsModalOpen(false)} 
-                  onSubmit={(values) => createNoteMutation.mutate(values as CreateNoteParams)} 
               />
           </Modal>
       )}
